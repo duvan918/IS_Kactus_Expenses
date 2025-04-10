@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "IS_Kactus_Expenses_Update": {
+      "commandName": "Project",
+      "commandLineArgs": "update"
+    },
+    "IS_Kactus_Expenses_Create": {
+      "commandName": "Project",
+      "commandLineArgs": "create Template\\PlantillaCreacionKactus.xlsx"
+    }
+  }
+}
