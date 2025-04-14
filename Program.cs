@@ -53,12 +53,7 @@ switch (args[0].ToLower())
         await applicationRunner.UpdateUsersAsync();
         break;
 
-    //dotnet run -- create
-    //case "create":
-    //    var codEmpList = new List<string> { "10198901245", "1010178996", "1033754995", "80219752", "1001347043", "1014267333", "1077148146" };
-    //    await applicationRunner.CreateUsersAsync(codEmpList);
-    //    break;
-
+    //dotnet run -- create <ruta_al_archivo>
     case "create":
         if (args.Length < 2)
         {
@@ -74,6 +69,20 @@ switch (args[0].ToLower())
         }
 
         await applicationRunner.CreateUsersAsync(filePath);
+        break;
+
+    //dotnet run -- clone <targetUserId> <masterUserId>
+    case "clone":
+        if (args.Length < 3)
+        {
+            Console.WriteLine("Debe proporcionar el ID del usuario objetivo y el ID del usuario maestro. Uso: dotnet run -- clone <targetUserId> <masterUserId>");
+            return;
+        }
+
+        int targetUserId = int.Parse(args[1]);
+        int masterUserId = int.Parse(args[2]);
+
+        await applicationRunner.CloneUserConfigurationsAsync(targetUserId, masterUserId);
         break;
 
     default:

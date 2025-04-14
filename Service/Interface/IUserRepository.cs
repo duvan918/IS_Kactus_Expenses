@@ -8,6 +8,13 @@ namespace IS_Kactus_Expenses.Service.Interface
         Task UpdateUserAsync(Usuario user);
         Task AddUserAsync(Usuario user);
         Task<Usuario?> GetUserAsync(string codEmp, int companyId);
-    }
 
+
+        Task<IEnumerable<UsuarioConfiguracion>> GetConfigurationsByUserIdAsync(int userId);
+        Task AddConfigurationAsync(UsuarioConfiguracion configuration);
+        Task DeleteConfigurationsByUserIdAsync(int userId);
+
+
+        Task<IEnumerable<Usuario>> GetMasterUsersAsync(int idPerfil, int grupo);
+    }
 }

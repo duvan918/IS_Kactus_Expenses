@@ -11,6 +11,7 @@ namespace IS_Kactus_Expenses.Data
         }
 
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<UsuarioConfiguracion> UsuarioConfiguraciones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +76,50 @@ namespace IS_Kactus_Expenses.Data
                     .HasColumnName("tsActivo");
             });
 
+            modelBuilder.Entity<UsuarioConfiguracion>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("Usuario_Configuracion");
+
+            entity.Property(e => e.CentroCostos)
+                .HasMaxLength(15)
+                .IsUnicode(false);
+            entity.Property(e => e.CentroOperacion)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasColumnName("Centro_Operacion");
+            entity.Property(e => e.IdCompania).HasColumnName("idCompania");
+            entity.Property(e => e.IdCondicionPago)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("id_CondicionPago");
+            entity.Property(e => e.IdConfiguracion)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id_Configuracion");
+            entity.Property(e => e.IdUsuario).HasColumnName("idUsuario");
+            entity.Property(e => e.Moneda)
+                .HasMaxLength(5)
+                .IsUnicode(false);
+            entity.Property(e => e.Motivo)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Servicios)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.TipoDocumento)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasColumnName("Tipo_Documento");
+            entity.Property(e => e.TipoProveedor)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.UnidadNegocio)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("Unidad_Negocio");
+        });
+        
             base.OnModelCreating(modelBuilder);
         }
     }

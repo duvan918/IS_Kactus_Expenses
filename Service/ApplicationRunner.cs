@@ -50,6 +50,19 @@ namespace IS_Kactus_Expenses.Service
             }
         }
 
+        public async Task CloneUserConfigurationsAsync(int targetUserId, int masterUserId)
+        {
+            try
+            {
+                await _userService.CloneConfigurationsAsync(targetUserId, masterUserId);
+                Console.WriteLine($"Se clonaron las configuraciones del usuario maestro {masterUserId} al usuario {targetUserId}.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al clonar configuraciones: {ex.Message}");
+            }
+        }
+
         private List<EmployeeData> ReadEmployeeDataFromExcel(string filePath)
         {
             var employees = new List<EmployeeData>();

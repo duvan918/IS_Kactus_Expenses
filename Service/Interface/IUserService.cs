@@ -11,6 +11,9 @@ namespace IS_Kactus_Expenses.Service.Interface
     {
         Task<int> UpdateUsersAsync(int companyId);
         Task<int> CreateUsersAsync(IEnumerable<EmployeeData> employees, int companyId);
+
+
+        Task CloneConfigurationsAsync(int targetUserId, int masterUserId);
     }
 
 }

@@ -108,6 +108,35 @@ namespace IS_Kactus_Expenses.Service
 
             return createdUsers;
         }
+
+
+
+        public async Task CloneConfigurationsAsync(int targetUserId, int masterUserId)
+        {
+            var masterConfigurations = await _userRepository.GetConfigurationsByUserIdAsync(masterUserId);
+
+            await _userRepository.DeleteConfigurationsByUserIdAsync(targetUserId);
+
+            foreach (var config in masterConfigurations)
+            {
+                var newConfig = new UsuarioConfiguracion
+                {
+                    IdUsuario = targetUserId,
+                    IdCompania = config.IdCompania,
+                    TipoDocumento = config.TipoDocumento,
+                    CentroOperacion = config.CentroOperacion,
+                    Servicios = config.Servicios,
+                    UnidadNegocio = config.UnidadNegocio,
+                    IdCondicionPago = config.IdCondicionPago,
+                    Motivo = config.Motivo,
+                    TipoProveedor = config.TipoProveedor,
+                    CentroCostos = config.CentroCostos,
+                    Moneda = config.Moneda
+                };
+
+                await _userRepository.AddConfigurationAsync(newConfig);
+            }
+        }
     }
 
 }
