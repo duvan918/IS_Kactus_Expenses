@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Polly;
 
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((context, config) =>
@@ -17,7 +18,9 @@ var builder = Host.CreateDefaultBuilder(args)
             options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
 
         services.AddHttpClient<IApiClient, ApiClient>(client =>
-        client.BaseAddress = new Uri(context.Configuration["ApiSettings:BaseUrl"]!));
+            client.BaseAddress = new Uri(context.Configuration["ApiSettings:BaseUrl"]!))
+            .AddPolicyHandler(Policy<HttpResponseMessage>.Handle<HttpRequestException>()
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
 
         services.AddScoped<IEmailService, EmailService>();
 
