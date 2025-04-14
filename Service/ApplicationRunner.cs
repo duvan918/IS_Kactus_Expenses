@@ -77,8 +77,9 @@ namespace IS_Kactus_Expenses.Service
                     var employee = new EmployeeData
                     {
                         Documento = row.Cell(1).GetString(),
-                        Grupo = int.Parse(row.Cell(2).GetValue<string>() ?? "0"),
-                        Perfil = int.Parse(row.Cell(3).GetValue<string>() ?? "0")
+                        Perfil = Utils.Utils.RoleMapping.TryGetValue(row.Cell(2).GetString(), out int perfil) 
+                            ? perfil 
+                            : throw new Exception($"El perfil '{row.Cell(3).GetString()}' no está mapeado.")
                     };
                     employees.Add(employee);
                 }

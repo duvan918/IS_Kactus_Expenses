@@ -77,8 +77,8 @@ namespace IS_Kactus_Expenses.Service
                     IdCompania = companyId,
                     IdPerfil = employee.Perfil,
                     Cedula = userData.CodEmp,
-                    Nit = userData.CodEmp,                      //Negociar con el cliente la estructura para usuario
-                    Clave = userData.CodEmp + "Siesa",          //Negociar con el cliente la estructura para clave
+                    Nit = userData.CodEmp,
+                    Clave = userData.CodEmp + "Siesa",
                     NombreCompleto = userData.NombreEmp1,
                     RazonSocial = userData.NombreEmp1,
                     CiudadBase = userData.CentroEmp,
@@ -86,7 +86,11 @@ namespace IS_Kactus_Expenses.Service
                     Direccion = "Cll 00 # 00 - 00",
                     Celular = userData.TelEmp,
                     Observaciones = userData.CargoEmp,
-                    Grupo = employee.Grupo,
+                    // Grupo = employee.Grupo,
+                    // Grupo = userData.DivPers,
+                    Grupo = Utils.Utils.DepartmentMapping.TryGetValue(userData.DivPers, out int div) 
+                        ? div 
+                        : throw new Exception($"Grupo no encontrado para el valor: {userData.DivPers} del documento {userData.CodEmp}"),
                     BitAprobacion = false,
                     IdPadrino = 0,                              //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
                     BitEstado = userData.EstadoEmp == "1"
