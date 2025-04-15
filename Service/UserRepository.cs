@@ -43,35 +43,6 @@ namespace IS_Kactus_Expenses.Service
             return await _context.UsuarioConfiguraciones.Where(c => c.IdUsuario == userId).ToListAsync();
         }
 
-        public async Task AddConfigurationAsync(UsuarioConfiguracion configuration)
-        {
-            // await _context.UsuarioConfiguraciones.AddAsync(configuration);
-            // await _context.SaveChangesAsync();
-
-            // Insertar usando SQL directo debido a que la entidad no tiene llave primaria
-            // y no se puede usar AddAsync directamente.
-            var sql = @"
-                INSERT INTO Usuario_Configuracion 
-                (IdUsuario, IdCompania, Tipo_Documento, Centro_Operacion, Servicios, Unidad_Negocio, id_CondicionPago, Motivo, TipoProveedor, CentroCostos, Moneda)
-                VALUES 
-                (@IdUsuario, @IdCompania, @TipoDocumento, @CentroOperacion, @Servicios, @UnidadNegocio, @IdCondicionPago, @Motivo, @TipoProveedor, @CentroCostos, @Moneda)";
-
-            await _context.Database.ExecuteSqlRawAsync(sql, new[]
-            {
-                new Microsoft.Data.SqlClient.SqlParameter("@IdUsuario", configuration.IdUsuario ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@IdCompania", configuration.IdCompania ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@TipoDocumento", configuration.TipoDocumento ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@CentroOperacion", configuration.CentroOperacion ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@Servicios", configuration.Servicios ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@UnidadNegocio", configuration.UnidadNegocio ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@IdCondicionPago", configuration.IdCondicionPago ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@Motivo", configuration.Motivo ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@TipoProveedor", configuration.TipoProveedor ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@CentroCostos", configuration.CentroCostos ?? (object)DBNull.Value),
-                new Microsoft.Data.SqlClient.SqlParameter("@Moneda", configuration.Moneda ?? (object)DBNull.Value)
-            });
-        }
-
         public async Task AddConfigurationsAsync(IEnumerable<UsuarioConfiguracion> configurations)
         {
             var sql = new StringBuilder("INSERT INTO Usuario_Configuracion (IdUsuario, IdCompania, Tipo_Documento, Centro_Operacion, Servicios, Unidad_Negocio, id_CondicionPago, Motivo, TipoProveedor, CentroCostos, Moneda) VALUES ");
