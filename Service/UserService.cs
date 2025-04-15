@@ -71,7 +71,7 @@ namespace IS_Kactus_Expenses.Service
             user.CiudadBase = data.CentroEmp;
             user.Celular = data.TelEmp;
             user.Observaciones = data.CargoEmp;
-            user.IdPadrino = 0;                         //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
+            user.IdPadrino = 0;         //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
             user.BitEstado = data.EstadoEmp == "1";
         }
 
@@ -79,17 +79,16 @@ namespace IS_Kactus_Expenses.Service
         public async Task<int> CreateUsersAsync(IEnumerable<EmployeeData> employees, int companyId)
         {
             int createdUsers = 0;
+            var newUsers = new List<Usuario>();
 
             foreach (var employee in employees)
             {
-
                 var apiResponse = await _apiClient.GetUserDataAsync(employee.Documento);
                 var userData = JsonSerializer.Deserialize<ResponseData>(apiResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })?.Data;
                 if (userData == null) continue;
 
                 Usuario? existingUser = await _userRepository.GetUserAsync(employee.Documento, companyId);
                 if (existingUser != null) continue;
-
 
                 var newUser = new Usuario
                 {
@@ -105,28 +104,27 @@ namespace IS_Kactus_Expenses.Service
                     Direccion = "Cll 00 # 00 - 00",
                     Celular = userData.TelEmp,
                     Observaciones = userData.CargoEmp,
-                    // Grupo = employee.Grupo,
-                    // Grupo = userData.DivPers,
-                    Grupo = Utils.Utils.DepartmentMapping.TryGetValue(userData.DivPers, out int div) 
-                        ? div 
+                    Grupo = Utils.Utils.DepartmentMapping.TryGetValue(userData.DivPers, out int div)
+                        ? div
                         : throw new Exception($"Grupo no encontrado para el valor: {userData.DivPers} del documento {userData.CodEmp}"),
                     BitAprobacion = false,
-                    IdPadrino = 0,                              //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
+                    IdPadrino = 0,     //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
                     BitEstado = userData.EstadoEmp == "1"
                 };
 
-                await _userRepository.AddUserAsync(newUser);
-
+                newUsers.Add(newUser);
                 createdUsers++;
-
-
-
 
                 //string subject = "Bienvenido a Siesa Expenses";
                 //string body = $"Hola {newUser.NombreCompleto},<br/>Tu usuario ha sido creado exitosamente.<br/><br/>Usuario: {newUser.Nit}<br/>Contraseña: {newUser.Clave}";
 
                 //await _emailService.SendEmailAsync(newUser.Correo, subject, body);
 
+            }
+
+            if (newUsers.Any())
+            {
+                await _userRepository.AddUsersAsync(newUsers);
             }
 
             return createdUsers;
@@ -139,6 +137,8 @@ namespace IS_Kactus_Expenses.Service
             var masterConfigurations = await _userRepository.GetConfigurationsByUserIdAsync(masterUserId);
 
             await _userRepository.DeleteConfigurationsByUserIdAsync(targetUserId);
+
+            var newConfigurations = new List<UsuarioConfiguracion>();
 
             foreach (var config in masterConfigurations)
             {
@@ -157,7 +157,12 @@ namespace IS_Kactus_Expenses.Service
                     Moneda = config.Moneda
                 };
 
-                await _userRepository.AddConfigurationAsync(newConfig);
+                newConfigurations.Add(newConfig);
+            }
+
+            if (newConfigurations.Any())
+            {
+                await _userRepository.AddConfigurationsAsync(newConfigurations);
             }
         }
     }

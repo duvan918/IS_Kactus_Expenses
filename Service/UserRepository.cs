@@ -1,4 +1,5 @@
-﻿using IS_Kactus_Expenses.Data;
+﻿using System.Text;
+using IS_Kactus_Expenses.Data;
 using IS_Kactus_Expenses.Model;
 using IS_Kactus_Expenses.Service.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -25,9 +26,9 @@ namespace IS_Kactus_Expenses.Service
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddUserAsync(Usuario user)
+        public async Task AddUsersAsync(IEnumerable<Usuario> users)
         {
-            await _context.Usuarios.AddAsync(user);
+            await _context.Usuarios.AddRangeAsync(users);
             await _context.SaveChangesAsync();
         }
 
@@ -69,6 +70,36 @@ namespace IS_Kactus_Expenses.Service
                 new Microsoft.Data.SqlClient.SqlParameter("@CentroCostos", configuration.CentroCostos ?? (object)DBNull.Value),
                 new Microsoft.Data.SqlClient.SqlParameter("@Moneda", configuration.Moneda ?? (object)DBNull.Value)
             });
+        }
+
+        public async Task AddConfigurationsAsync(IEnumerable<UsuarioConfiguracion> configurations)
+        {
+            var sql = new StringBuilder("INSERT INTO Usuario_Configuracion (IdUsuario, IdCompania, Tipo_Documento, Centro_Operacion, Servicios, Unidad_Negocio, id_CondicionPago, Motivo, TipoProveedor, CentroCostos, Moneda) VALUES ");
+
+            var parameters = new List<Microsoft.Data.SqlClient.SqlParameter>();
+            int index = 0;
+
+            foreach (var config in configurations)
+            {
+                sql.Append($"(@IdUsuario{index}, @IdCompania{index}, @TipoDocumento{index}, @CentroOperacion{index}, @Servicios{index}, @UnidadNegocio{index}, @IdCondicionPago{index}, @Motivo{index}, @TipoProveedor{index}, @CentroCostos{index}, @Moneda{index}),");
+
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@IdUsuario{index}", config.IdUsuario ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@IdCompania{index}", config.IdCompania ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@TipoDocumento{index}", config.TipoDocumento ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@CentroOperacion{index}", config.CentroOperacion ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@Servicios{index}", config.Servicios ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@UnidadNegocio{index}", config.UnidadNegocio ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@IdCondicionPago{index}", config.IdCondicionPago ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@Motivo{index}", config.Motivo ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@TipoProveedor{index}", config.TipoProveedor ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@CentroCostos{index}", config.CentroCostos ?? (object)DBNull.Value));
+                parameters.Add(new Microsoft.Data.SqlClient.SqlParameter($"@Moneda{index}", config.Moneda ?? (object)DBNull.Value));
+
+                index++;
+            }
+
+            sql.Length--; // Eliminar la última coma
+            await _context.Database.ExecuteSqlRawAsync(sql.ToString(), parameters.ToArray());
         }
 
         public async Task DeleteConfigurationsByUserIdAsync(int userId)

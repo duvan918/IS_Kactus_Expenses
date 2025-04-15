@@ -6,12 +6,12 @@ namespace IS_Kactus_Expenses.Service.Interface
     {
         Task<IEnumerable<Usuario>> GetUsersByCompanyId(int companyId);
         Task UpdateUserAsync(Usuario user);
-        Task AddUserAsync(Usuario user);
+        Task AddUsersAsync(IEnumerable<Usuario> users);
         Task<Usuario?> GetUserAsync(string codEmp, int companyId);
 
 
         Task<IEnumerable<UsuarioConfiguracion>> GetConfigurationsByUserIdAsync(int userId);
-        Task AddConfigurationAsync(UsuarioConfiguracion configuration);
+        Task AddConfigurationsAsync(IEnumerable<UsuarioConfiguracion> configurations);
         Task DeleteConfigurationsByUserIdAsync(int userId);
 
         Task<Usuario?> GetMasterUserAsync(int grupoId);
