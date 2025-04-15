@@ -14,7 +14,6 @@ namespace IS_Kactus_Expenses.Service.Interface
         Task AddConfigurationAsync(UsuarioConfiguracion configuration);
         Task DeleteConfigurationsByUserIdAsync(int userId);
 
-
-        Task<IEnumerable<Usuario>> GetMasterUsersAsync(int idPerfil, int grupo);
+        Task<Usuario?> GetMasterUserAsync(int grupoId);
     }
 }

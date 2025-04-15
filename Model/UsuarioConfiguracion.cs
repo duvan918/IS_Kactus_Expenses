@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace IS_Kactus_Expenses.Model;
 
 public class UsuarioConfiguracion

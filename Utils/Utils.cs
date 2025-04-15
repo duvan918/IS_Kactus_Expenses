@@ -15,4 +15,11 @@ public static class Utils
         { "FAYS", 195 },    //Farma
         { "RAYS", 194 }     //Clínica
     };
+
+    public static readonly Dictionary<string, string> DepartmentEquivalence = new Dictionary<string, string>
+    {
+        { "DIGE", "DIRECCION GENERAL" },
+        { "FAYS", "FARMA" },
+        { "RAYS", "CLINICAS" }
+    };
 }

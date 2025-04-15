@@ -41,7 +41,7 @@ var applicationRunner = scope.ServiceProvider.GetRequiredService<ApplicationRunn
 
 if (args.Length == 0)
 {
-    Console.WriteLine("No se proporcionaron parámetros. Use 'update' para la opción 1 o 'create' para la opción 2.");
+    Console.WriteLine("No se proporcionaron parámetros. Use 'update' para la opción 1 o 'create' para la opción 2 o 'clone' para la opción 3.");
     return;
 }
 

@@ -1,5 +1,6 @@
 ﻿using IS_Kactus_Expenses.Model;
 using IS_Kactus_Expenses.Service.Interface;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace IS_Kactus_Expenses.Service
@@ -26,7 +27,6 @@ namespace IS_Kactus_Expenses.Service
 
             foreach (var user in users)
             {
-                //var responseJson = "{\"data\":{\"codEmp\":\"10198901245\",\"estadoEmp\":\"1\",\"statusOcupa\":\"\",\"idPersonal\":\"13\",\"nombreEmp1\":\"RIVERA ALBA LUISA FERNANDA\",\"nombreEmp2\":null,\"apeEmp1\":null,\"apeEmp2\":null,\"nombreJef1\":\"RIVERA ALBA LUISA FERNANDA\",\"nombreJef2\":null,\"apeJef1\":null,\"apeJef2\":null,\"codJef2\":\"\",\"codJef1\":\"10198901245\",\"correoEmp\":\"prueba123@mail.com\",\"cateHospe\":\"0005\",\"tipoHospe\":\"002\",\"pos1\":\"AUXILIAR DE SISTEMAS DE INFORMACION\",\"pos2\":\"\",\"iniVal\":\"\",\"finVal\":\"\",\"claseAbsentismo\":\"\",\"fechaNaciEmpl\":\"1993/03/13\",\"cargoEmp\":\"DIRECTORA DE TECNOLOGIA\",\"centroEmp\":\"BOGOTA\",\"telEmp\":\"1239876\",\"correoJef\":\"prueba123@mail.com\",\"cargoJef\":\"DIRECTORA DE TECNOLOGIA\",\"divPers\":\"DIGE\",\"subDivPers\":\"GERENCIA DE OPERACIONES\",\"token\":\"27y9HS4nWSHa5gE4nDsuGNqvtDz6Tzi1|KHDvspMbRAxUtRP4neSWhe/evZdIHkfH|BOBDeWalQlU=\",\"changeToken\":\"N\"},\"notificationDTO\":{\"httpstatus\":\"OK\",\"message\":\"Respuesta correcta\"}}";
                 var responseJson = await _apiClient.GetUserDataAsync(user.Cedula!);
                 if (string.IsNullOrEmpty(responseJson)) continue;
 
@@ -34,6 +34,25 @@ namespace IS_Kactus_Expenses.Service
                 if (responseData?.Data == null) continue;
 
                 UpdateUserFromData(user, responseData.Data);
+
+                if (user.Grupo == 0 || user.Grupo == null)
+                {
+                    //Enviar correo
+                    Console.WriteLine($"Grupo no encontrado para el valor: {user.Grupo} del documento {user.Cedula}");
+                    continue;
+                }
+                
+                var UsuarioMaestro = await _userRepository.GetMasterUserAsync((int)user.Grupo);
+                if (UsuarioMaestro == null)
+                {
+                    //Enviar correo
+                    Console.WriteLine($"No se encontró el usuario maestro para el grupo {user.Grupo} y el documento {user.Cedula}");
+                    continue;
+                }
+                
+                await CloneConfigurationsAsync(user.IdUsuario, UsuarioMaestro.IdUsuario);
+
+
 
                 updatedUsers++;
 
