@@ -11,10 +11,6 @@
     "IS_Kactus_Expenses_Create": {
       "commandName": "Project",
       "commandLineArgs": "create Template\\PlantillaCreacionKactus.xlsx"
-    },
-    "IS_Kactus_Expenses_Clone": {
-      "commandName": "Project",
-      "commandLineArgs": "clone 3535 3468"
     }
   }
 }

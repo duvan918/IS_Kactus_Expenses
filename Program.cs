@@ -71,20 +71,6 @@ switch (args[0].ToLower())
         await applicationRunner.CreateUsersAsync(filePath);
         break;
 
-    //dotnet run -- clone <targetUserId> <masterUserId>
-    case "clone":
-        if (args.Length < 3)
-        {
-            Console.WriteLine("Debe proporcionar el ID del usuario objetivo y el ID del usuario maestro. Uso: dotnet run -- clone <targetUserId> <masterUserId>");
-            return;
-        }
-
-        int targetUserId = int.Parse(args[1]);
-        int masterUserId = int.Parse(args[2]);
-
-        await applicationRunner.CloneUserConfigurationsAsync(targetUserId, masterUserId);
-        break;
-
     default:
         Console.WriteLine($"Comando no reconocido: {args[0]}");
         Console.WriteLine("Use 'update' para la opción 1 o 'create' para la opción 2.");

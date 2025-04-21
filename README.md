@@ -114,18 +114,6 @@ Ejemplo:
 dotnet run -- create "C:\Users\Usuario\Desktop\usuarios.xlsx"
 ```
 
-### 3. **Clonar Configuraciones**
-Clona las configuraciones de un usuario maestro a otro usuario.
-
-```bash
-dotnet run -- clone <targetUserId> <masterUserId>
-```
-
-Ejemplo:
-```bash
-dotnet run -- clone 5 1
-```
-
 ---
 
 ## Detalles Técnicos

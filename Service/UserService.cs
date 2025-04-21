@@ -27,32 +27,50 @@ namespace IS_Kactus_Expenses.Service
 
             foreach (var user in users)
             {
-                var responseJson = await _apiClient.GetUserDataAsync(user.Cedula!);
-                if (string.IsNullOrEmpty(responseJson)) continue;
+                string responseJson;
+                ResponseData? responseData;
 
-                var responseData = JsonSerializer.Deserialize<ResponseData>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                responseJson = await _apiClient.GetUserDataAsync(user.Cedula!);
+                responseData = JsonSerializer.Deserialize<ResponseData>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if ((responseData?.NotificationDTO?.HttpStatus == "BAD_REQUEST" || responseData?.NotificationDTO?.HttpStatus != "OK") && responseData?.NotificationDTO.Message != "Respuesta correcta")
+                {
+                    responseJson = await _apiClient.GetUserDataAsync(user.Cedula!);
+                    responseData = JsonSerializer.Deserialize<ResponseData>(responseJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
                 if (responseData?.Data == null) continue;
 
-                UpdateUserFromData(user, responseData.Data);
+                Usuario? existingSupervisor = await _userRepository.GetUserAsync(responseData.Data.CodJef1, companyId);
+
+                user.NombreCompleto = responseData.Data.NombreEmp1;
+                user.RazonSocial = responseData.Data.NombreEmp1;
+                user.Correo = responseData.Data.CorreoEmp;
+                user.CiudadBase = responseData.Data.CentroEmp;
+                user.Celular = responseData.Data.TelEmp;
+                user.Observaciones = responseData.Data.CargoEmp;
+                user.Grupo = Utils.Utils.DepartmentMapping.TryGetValue(responseData.Data.DivPers, out int div)
+                    ? div
+                    : throw new Exception($"Grupo no encontrado para el valor: {responseData.Data.DivPers} del documento {responseData.Data.CodEmp}");
+                user.IdPadrino = user.IdPerfil == Utils.Utils.RoleMapping["Aprobador"] ? 0 : existingSupervisor?.IdUsuario ?? 0;
+                user.BitEstado = responseData.Data.EstadoEmp == "1";
 
                 if (user.Grupo == 0 || user.Grupo == null)
                 {
-                    //Enviar correo
+                    // Enviar correo
                     Console.WriteLine($"Grupo no encontrado para el valor: {user.Grupo} del documento {user.Cedula}");
                     continue;
                 }
-                
+
                 var UsuarioMaestro = await _userRepository.GetMasterUserAsync((int)user.Grupo);
                 if (UsuarioMaestro == null)
                 {
-                    //Enviar correo
+                    // Enviar correo
                     Console.WriteLine($"No se encontró el usuario maestro para el grupo {user.Grupo} y el documento {user.Cedula}");
                     continue;
                 }
-                
+
                 await CloneConfigurationsAsync(user.IdUsuario, UsuarioMaestro.IdUsuario);
-
-
 
                 updatedUsers++;
 
@@ -62,69 +80,71 @@ namespace IS_Kactus_Expenses.Service
             return updatedUsers;
         }
 
-        private void UpdateUserFromData(Usuario user, DataReceived data)
-        {
-            //user.Cedula = data.CodEmp;
-            user.NombreCompleto = data.NombreEmp1;
-            user.RazonSocial = data.NombreEmp1;
-            user.Correo = data.CorreoEmp;
-            user.CiudadBase = data.CentroEmp;
-            user.Celular = data.TelEmp;
-            user.Observaciones = data.CargoEmp;
-            user.IdPadrino = 0;         //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
-            user.BitEstado = data.EstadoEmp == "1";
-        }
-
 
         public async Task<int> CreateUsersAsync(IEnumerable<EmployeeData> employees, int companyId)
         {
             int createdUsers = 0;
-            var newUsers = new List<Usuario>();
 
-            foreach (var employee in employees)
+            var groupedEmployees = employees
+                .GroupBy(e => e.Perfil)
+                .OrderByDescending(g => g.Key);
+
+            foreach (var group in groupedEmployees)
             {
-                var apiResponse = await _apiClient.GetUserDataAsync(employee.Documento);
-                var userData = JsonSerializer.Deserialize<ResponseData>(apiResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })?.Data;
-                if (userData == null) continue;
+                var newUsers = new List<Usuario>();
 
-                Usuario? existingUser = await _userRepository.GetUserAsync(employee.Documento, companyId);
-                if (existingUser != null) continue;
-
-                var newUser = new Usuario
+                foreach (var employee in group)
                 {
-                    IdCompania = companyId,
-                    IdPerfil = employee.Perfil,
-                    Cedula = userData.CodEmp,
-                    Nit = userData.CodEmp,
-                    Clave = userData.CodEmp + "Siesa",
-                    NombreCompleto = userData.NombreEmp1,
-                    RazonSocial = userData.NombreEmp1,
-                    CiudadBase = userData.CentroEmp,
-                    Correo = userData.CorreoEmp,
-                    Direccion = "Cll 00 # 00 - 00",
-                    Celular = userData.TelEmp,
-                    Observaciones = userData.CargoEmp,
-                    Grupo = Utils.Utils.DepartmentMapping.TryGetValue(userData.DivPers, out int div)
-                        ? div
-                        : throw new Exception($"Grupo no encontrado para el valor: {userData.DivPers} del documento {userData.CodEmp}"),
-                    BitAprobacion = false,
-                    IdPadrino = 0,     //Revisar -> Ya debería existir el Supervisor por lo que hay que consultar usuario con ese perfil antes de... podría usarse codJefe
-                    BitEstado = userData.EstadoEmp == "1"
-                };
+                    string apiResponse;
+                    ResponseData? userData;
 
-                newUsers.Add(newUser);
-                createdUsers++;
+                    apiResponse = await _apiClient.GetUserDataAsync(employee.Documento);
+                    userData = JsonSerializer.Deserialize<ResponseData>(apiResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                //string subject = "Bienvenido a Siesa Expenses";
-                //string body = $"Hola {newUser.NombreCompleto},<br/>Tu usuario ha sido creado exitosamente.<br/><br/>Usuario: {newUser.Nit}<br/>Contraseña: {newUser.Clave}";
+                    if ((userData?.NotificationDTO?.HttpStatus == "BAD_REQUEST" || userData?.NotificationDTO?.HttpStatus != "OK") && userData?.NotificationDTO.Message != "Respuesta correcta")
+                    {
+                        apiResponse = await _apiClient.GetUserDataAsync(employee.Documento);
+                        userData = JsonSerializer.Deserialize<ResponseData>(apiResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    }
 
-                //await _emailService.SendEmailAsync(newUser.Correo, subject, body);
+                    if (userData?.Data == null) continue;
 
-            }
+                    Usuario? existingUser = await _userRepository.GetUserAsync(employee.Documento, companyId);
+                    if (existingUser != null) continue;
 
-            if (newUsers.Any())
-            {
-                await _userRepository.AddUsersAsync(newUsers);
+                    Usuario? existingSupervisor = await _userRepository.GetUserAsync(userData.Data.CodJef1, companyId);
+
+                    var newUser = new Usuario
+                    {
+                        IdCompania = companyId,
+                        IdPerfil = employee.Perfil,
+                        Cedula = userData.Data.CodEmp,
+                        Nit = userData.Data.CodEmp,
+                        Clave = userData.Data.CodEmp + "Siesa",
+                        NombreCompleto = userData.Data.NombreEmp1,
+                        RazonSocial = userData.Data.NombreEmp1,
+                        CiudadBase = userData.Data.CentroEmp,
+                        Correo = userData.Data.CorreoEmp,
+                        Direccion = "Cll 00 # 00 - 00",
+                        Celular = userData.Data.TelEmp,
+                        Observaciones = userData.Data.CargoEmp,
+                        Grupo = Utils.Utils.DepartmentMapping.TryGetValue(userData.Data.DivPers, out int div)
+                            ? div
+                            : throw new Exception($"Grupo no encontrado para el valor: {userData.Data.DivPers} del documento {userData.Data.CodEmp}"),
+                        BitAprobacion = false,
+                        IdPadrino = employee.Perfil == Utils.Utils.RoleMapping["Aprobador"] ? 0 : existingSupervisor?.IdUsuario ?? 0,
+                        BitEstado = userData.Data.EstadoEmp == "1",
+                        Cupo = 5000000,
+                    };
+
+                    newUsers.Add(newUser);
+                    createdUsers++;
+                }
+
+                if (newUsers.Any())
+                {
+                    await _userRepository.AddUsersAsync(newUsers);
+                }
             }
 
             return createdUsers;
